@@ -4,31 +4,40 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 public class Client {
-    public static void main(String [] args) {
+    public static void main(String[] args) {
         try {
-             System.out.println("Client started.");
-             Socket soc = new Socket("localhost", 9806);
+            System.out.println("Client started.");
 
-             /**
-              * Read data from the user and send it to the server.
-              */
+            Socket clientSocket = new Socket("localhost", 9806);
 
-             System.out.println("What's your name?");
+            // Reader for user input.
+            BufferedReader userInputReader = new BufferedReader(new InputStreamReader(System.in));
 
-             // The data is read/write through File IO stream. Buffered reader/writer accepts
-             // Input/Output Stream reader.
-            InputStreamReader in = new InputStreamReader(System.in);
-            BufferedReader reader = new BufferedReader(in);
+            // Writer to server
+            PrintWriter servWriter = new PrintWriter(clientSocket.getOutputStream(), true);
 
-            // Writing it to the socket.
-            PrintWriter out = new PrintWriter(soc.getOutputStream(), true);
+           // Read from the server.
+           BufferedReader serverReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        
+           // Step 1: LIST
+            String userCommand = userInputReader.readLine();
+            servWriter.println(userCommand);
 
-            String message = reader.readLine();
-            out.println(message);
+            String serverResponse;
+            while ((serverResponse = serverReader.readLine()) != null && !serverResponse.equals("END")) {
+                System.out.println(serverResponse);
+            }
 
+            // Step 2: OPEN FILE
+            String fileRequest = userInputReader.readLine();
+            servWriter.println(fileRequest);
 
-        }catch(Exception e) {
-           e.printStackTrace();
+            String fileContent;
+            while ((fileContent = serverReader.readLine()) != null && !fileContent.equals("END")) {
+                System.out.println(fileContent);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
