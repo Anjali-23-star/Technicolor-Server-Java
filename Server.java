@@ -3,6 +3,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.io.File;
 import java.io.FileReader;
 
@@ -29,6 +31,9 @@ public class Server {
             pinkFile.createNewFile();
             blueFile.createNewFile();
 
+            File[] files = new File("./Server_Files").listFiles();
+
+
             /**
              * CUSTOME PROTOCOL:
              * LIST : List files.
@@ -41,8 +46,7 @@ public class Server {
             OutputStream serverOutput = clientSocket.getOutputStream();
 
             // Handle LIST command.
-            if (clientRequest.equals("LIST")) {
-                File[] files = new File("./Server_Files").listFiles();
+            if (clientRequest.equalsIgnoreCase("LIST")) {
 
                 // Send the file names to the client.
                 for (File file : files) {
@@ -54,25 +58,47 @@ public class Server {
             }
 
             // Handles OPEN request.
-            BufferedReader commandReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             String command;
+            
+            while((command = clientReader.readLine()) != null) {
+                command = command.trim();
+                String cmd[] = command.split("\\s+"); // file name is at 1 after splitting.
 
-            while ((command = commandReader.readLine()) != null) {
-                if (command.equals("OPEN orange.txt")) {
-                    FileReader fr = new FileReader("./Server_Files/orange.txt");
-                    BufferedReader file_buffer = new BufferedReader(fr);
+                boolean fileNotFound = true;
+                if(cmd.length==2) {
+                // User has asked to open a file.
+                if(cmd[0].equalsIgnoreCase("OPEN")) {
+                    for(File file: files) {
+                        // Search for the file requested by the user.
+                        if(cmd[1].equalsIgnoreCase(file.getName())) {
 
-                    String line_from_file;
+                            fileNotFound = false;
+                            FileReader fr = new FileReader(file);
+                            BufferedReader file_buffer = new BufferedReader(fr);
 
-                    OutputStream fileOutput = clientSocket.getOutputStream();
+                            String file_content;
 
-                    while ((line_from_file = file_buffer.readLine()) != null) {
-                        fileOutput.write((line_from_file + "\n").getBytes());
+                            while((file_content = file_buffer.readLine()) != null) {
+                                serverOutput.write((file_content+"\n").getBytes());
+                            }
+                            serverOutput.write("END\n".getBytes());
+                          
+                        }
+
+                        break;
                     }
-                    fileOutput.write("END\n".getBytes());
-                    clientSocket.close();
+                }
+
+                if(fileNotFound) {
+                    serverOutput.write((cmd[1]+" file not found.\n").getBytes());
+                    serverOutput.write("END\n".getBytes());
                 }
             }
+            else {
+                serverOutput.write("Please enter a valid file name.".getBytes());
+                serverOutput.write("END\n".getBytes());
+            }
+  }
         } catch (Exception e) {
             e.printStackTrace();
         }
