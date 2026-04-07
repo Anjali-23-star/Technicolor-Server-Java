@@ -33,7 +33,6 @@ public class Server {
 
             File[] files = new File("./Server_Files").listFiles();
 
-
             /**
              * CUSTOME PROTOCOL:
              * LIST : List files.
@@ -41,64 +40,65 @@ public class Server {
              */
             BufferedReader clientReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
-            String clientRequest = clientReader.readLine();
-
             OutputStream serverOutput = clientSocket.getOutputStream();
 
-            // Handle LIST command.
-            if (clientRequest.equalsIgnoreCase("LIST")) {
-
-                // Send the file names to the client.
-                for (File file : files) {
-                    String fileName = file.getName() + "\n";
-                    serverOutput.write(fileName.getBytes());
-                }
-                serverOutput.write("END\n".getBytes());
-                serverOutput.flush();
-            }
-
-            // Handles OPEN request.
+            // Handles list/OPEN request.
             String command;
-            
-            while((command = clientReader.readLine()) != null) {
+            while ((command = clientReader.readLine()) != null) {
                 command = command.trim();
-                String cmd[] = command.split("\\s+"); // file name is at 1 after splitting.
 
-                boolean fileNotFound = true;
-                if(cmd.length==2) {
-                // User has asked to open a file.
-                if(cmd[0].equalsIgnoreCase("OPEN")) {
-                    for(File file: files) {
-                        // Search for the file requested by the user.
-                        if(cmd[1].equalsIgnoreCase(file.getName())) {
+                String cmd[] = command.split("\\s+"); // the first argument of the request.
+                String action = cmd[0].toUpperCase();
 
-                            fileNotFound = false;
-                            FileReader fr = new FileReader(file);
-                            BufferedReader file_buffer = new BufferedReader(fr);
-
-                            String file_content;
-
-                            while((file_content = file_buffer.readLine()) != null) {
-                                serverOutput.write((file_content+"\n").getBytes());
-                            }
-                            serverOutput.write("END\n".getBytes());
-                          
+                switch (action) {
+                    case "LIST":
+                        // Send the file names to the client.
+                        for (File file : files) {
+                            String fileName = file.getName() + "\n";
+                            serverOutput.write(fileName.getBytes());
                         }
-
+                        serverOutput.write("END\n".getBytes());
                         break;
-                    }
-                }
 
-                if(fileNotFound) {
-                    serverOutput.write((cmd[1]+" file not found.\n").getBytes());
-                    serverOutput.write("END\n".getBytes());
+                    case "OPEN":
+                        boolean fileNotFound = true;
+
+                        if (cmd.length == 2) {
+                            for (File file : files) {
+                                // Search for the file requested by the user.
+                                if (cmd[1].equalsIgnoreCase(file.getName())) {
+
+                                    // A flag for file existence.
+                                    fileNotFound = false;
+                                    FileReader fr = new FileReader(file);
+                                    BufferedReader file_buffer = new BufferedReader(fr);
+
+                                    String file_content;
+
+                                    while ((file_content = file_buffer.readLine()) != null) {
+                                        serverOutput.write((file_content + "\n").getBytes());
+                                    }
+                                    serverOutput.write("END\n".getBytes());
+
+                                    break;
+                                }
+
+                            }
+                            if (fileNotFound) {
+                                serverOutput.write((cmd[1] + " file not found.\n").getBytes());
+                                serverOutput.write("END\n".getBytes());
+                            }
+                        } else {
+                            serverOutput.write("Please enter a valid file name.".getBytes());
+                            serverOutput.write("END\n".getBytes());
+                        }
+                        break;
+
+                    case "EXIT":
+                        serverOutput.write("This is server, Signing off for now.\n".getBytes());
+                        break;
                 }
             }
-            else {
-                serverOutput.write("Please enter a valid file name.".getBytes());
-                serverOutput.write("END\n".getBytes());
-            }
-  }
         } catch (Exception e) {
             e.printStackTrace();
         }

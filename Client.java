@@ -13,28 +13,22 @@ public class Client {
             // Reader for user input.
             BufferedReader userInputReader = new BufferedReader(new InputStreamReader(System.in));
 
-            // Writer to server
+            // Write to the server.
             PrintWriter servWriter = new PrintWriter(clientSocket.getOutputStream(), true);
 
-           // Read from the server.
-           BufferedReader serverReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-        
-           // Step 1: LIST
-            String userCommand = userInputReader.readLine();
-            servWriter.println(userCommand);
+            // Response from the server
+            BufferedReader serverReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
-            String serverResponse;
-            while ((serverResponse = serverReader.readLine()) != null && !serverResponse.equals("END")) {
-                System.out.println(serverResponse);
-            }
+            // Printing the response from the server.
+            while (true) {
 
-            // Step 2: OPEN FILE
-            String fileRequest = userInputReader.readLine();
-            servWriter.println(fileRequest);
+                String userCommand = userInputReader.readLine();
+                servWriter.println(userCommand);
 
-            String fileContent;
-            while ((fileContent = serverReader.readLine()) != null && !fileContent.equals("END")) {
-                System.out.println(fileContent);
+                String serverResponse;
+                while ((serverResponse = serverReader.readLine()) != null && !serverResponse.equals("END")) {
+                    System.out.println(serverResponse);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
