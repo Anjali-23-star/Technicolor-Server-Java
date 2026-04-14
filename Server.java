@@ -5,6 +5,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+
+import Server.FileService;
+
 import java.io.File;
 import java.io.FileReader;
 
@@ -14,26 +17,13 @@ import java.io.FileReader;
 public class Server {
     public static void main(String[] args) {
 
+        FileService fileService = new FileService(new File("./Server_Files"));
+
         try {
             ServerSocket serverSocket = new ServerSocket(9806);
             Socket clientSocket = serverSocket.accept(); // wait for client.
 
-            // Create directory
-            File serverDirectory = new File("./Server_Files");
-            serverDirectory.mkdirs();
-
-            // Create files
-            File orangFile = new File("./Server_Files/orange.txt");
-            File pinkFile = new File("./Server_Files/pink.txt");
-            File blueFile = new File("./Server_Files/blue.txt");
-
-            orangFile.createNewFile();
-            pinkFile.createNewFile();
-            blueFile.createNewFile();
-
-            File[] files = new File("./Server_Files").listFiles();
-
-            /**
+             /**
              * CUSTOME PROTOCOL:
              * LIST : List files.
              * OPEN file name: Send file content.
@@ -53,7 +43,7 @@ public class Server {
                 switch (action) {
                     case "LIST":
                         // Send the file names to the client.
-                        for (File file : files) {
+                        for (File file : fileService.listFiles()) {
                             String fileName = file.getName() + "\n";
                             serverOutput.write(fileName.getBytes());
                         }
@@ -64,7 +54,7 @@ public class Server {
                         boolean fileNotFound = true;
 
                         if (cmd.length == 2) {
-                            for (File file : files) {
+                            for (File file : fileService.listFiles()) {
                                 // Search for the file requested by the user.
                                 if (cmd[1].equalsIgnoreCase(file.getName())) {
 
@@ -94,13 +84,40 @@ public class Server {
                         }
                         break;
 
+                    case "PWD":
+                        serverOutput.write((fileService.getPWD()+"\nEND\n").getBytes());
+                        break;
+
+                    case "CD":
+                        if(cmd.length == 2) {
+                            // Navigating inside the parent directory.
+                            boolean fileExists = fileService.changeDirectory(cmd[1]);
+
+                            if(fileExists) {
+                                serverOutput.write("Changed directory\nEND\n".getBytes());
+                            }
+                            else{
+                                serverOutput.write("No such directory found.\nEND\n".getBytes());
+                            }
+                        }
+                        else{
+                            serverOutput.write("Please enter a valid directory.".getBytes());
+                        }
+                        break;
+
                     case "EXIT":
                         serverOutput.write("This is server, Signing off for now.\n".getBytes());
                         break;
+
+                    default:
+                        serverOutput.write("Please enter a valid command\n".getBytes());
+
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
+
 }
