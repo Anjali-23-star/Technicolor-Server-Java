@@ -1,10 +1,11 @@
-# Technicolor Server 🎨
+# Technicolor Server 
 
 I built this project to understand how client-server communication actually works using sockets.
 
 At a high level, the server holds a few files, and the client can:
 - list all available files
 - open and read any one of them
+- navigate to directories
 
 ---
 
@@ -13,7 +14,9 @@ At a high level, the server holds a few files, and the client can:
 I designed a very simple protocol:
 
 - `LIST` → server sends back all file names  
-- `OPEN <filename>` → server sends the content of that file  
+- `OPEN <filename>` → server sends the content of that file
+- `PWD` -> server return the present working directory.
+- `CD` -> navigate across directories.
 
 Each response ends with `END` so the client knows when to stop reading.
 
