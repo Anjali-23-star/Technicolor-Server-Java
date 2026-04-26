@@ -29,6 +29,11 @@ public class Client {
                 while ((serverResponse = serverReader.readLine()) != null && !serverResponse.equals("END")) {
                     System.out.println(serverResponse);
                 }
+
+                if(userCommand.equalsIgnoreCase("exit")) {
+                    clientSocket.close();
+                    break;
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

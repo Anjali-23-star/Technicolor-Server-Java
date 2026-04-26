@@ -11,7 +11,7 @@ public class FileService {
 
     /**
      * Intializing with the current directory.
-     * 
+     *
      * @param currentDirectory The current directory.
      */
     public FileService(final File currentDirectory) {
@@ -20,7 +20,7 @@ public class FileService {
 
     /**
      * Change the directory.
-     * 
+     *
      * @param otherDirectory The directory to navigate to.
      */
     public void changeDirectory(final File otherDirectory) {
@@ -39,7 +39,7 @@ public class FileService {
             return false;
         }
 
-        // If user wants to navigate to ohter directory (inside current directory).
+        // If user wants to navigate to other directory (inside current directory).
         File newDir = new File(currentDirectory, path);
 
         if (newDir.exists() && newDir.isDirectory()) {
@@ -53,7 +53,7 @@ public class FileService {
 
     /**
      * Gets the current directory.
-     * 
+     *
      * @return The current directory.
      */
     public File getCurrentDirectory() {
@@ -67,8 +67,7 @@ public class FileService {
 
     /**
      * Listing files from the choosen directory.
-     * 
-     * @param directory The choosen directory.
+     *
      * @return List of files in that directory.
      */
     public File[] listFiles() {
