@@ -1,9 +1,6 @@
 package Server;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 
 public class CommandProcessor {
 
@@ -43,6 +40,41 @@ public class CommandProcessor {
         }
         else{
             clientHandler.sendMessage("Please enter a valid directory.");
+            clientHandler.sendEND();
+        }
+    }
+
+    // handle file download.
+    public void handleDownload(String secondCmd) throws IOException{
+        String fileName = secondCmd;
+
+        final var file = fileService.getFile(fileName);
+
+        // If file is not found.
+        if(file == null) {
+            clientHandler.sendMessage("Sorry, no file of this name is found.");
+            clientHandler.sendEND();
+        }
+
+        else {
+            clientHandler.sendMessage("Download");
+            long fileLength = file.length();
+            clientHandler.sendMessage(Long.toString(fileLength));
+
+            // Sending content of the file.
+            byte[] buffer = new byte[4096];
+
+            // Reading the file requested by the client.
+            FileInputStream fio = new FileInputStream(file);
+            int read;
+
+            while ((read = fio.read(buffer)) != -1) {
+                clientHandler.getOutputStream().write(buffer, 0, read);
+            }
+
+            fio.close();
+
+            clientHandler.sendMessage("Download successful.");
             clientHandler.sendEND();
         }
     }
@@ -108,6 +140,36 @@ public class CommandProcessor {
         clientHandler.sendEND();
     }
 
+    public void handleUpload() throws  IOException {
+        // Reading meta-data of the file.
+        String fileName = clientHandler.readCommand();
+        long fileLength = Long.parseLong(clientHandler.readCommand());
+
+        handleFileContent(fileLength, fileName);
+
+        clientHandler.sendMessage("Upload successful.");
+        clientHandler.sendEND();
+    }
+
+    public void handleFileContent(long fileLength, String fileName) throws IOException {
+        // Create a file.
+        File uploadedFile = fileService.createFile(fileName);
+
+        FileOutputStream fio = new FileOutputStream(uploadedFile);
+
+        byte[] bytes = new byte[4096];
+
+        long remainingBytes = fileLength;
+        while(remainingBytes > 0) {
+            // Loading data into bytes.
+            int read = clientHandler.getInputStream().read(bytes);
+            fio.write(bytes, 0, read);
+
+            remainingBytes-=read;
+        }
+        fio.close();
+    }
+
     // Handles command.
     private void handleCommand(final String command, final String secondArg, final int tokens) throws IOException {
         switch(command) {
@@ -122,6 +184,12 @@ public class CommandProcessor {
                 break;
             case "CD":
                 handleCD(secondArg, tokens);
+                break;
+            case "UPLOAD":
+                handleUpload();
+                break;
+            case "DOWNLOAD":
+                handleDownload(secondArg);
                 break;
             case "EXIT":
                 handleExitCmd();

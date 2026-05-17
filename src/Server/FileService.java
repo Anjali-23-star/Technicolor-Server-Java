@@ -1,6 +1,7 @@
 package Server;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * A class for interacting with the files.
@@ -10,7 +11,7 @@ public class FileService {
     private File currentDirectory;
 
     /**
-     * Intializing with the current directory.
+     * Initializing with the current directory.
      *
      * @param currentDirectory The current directory.
      */
@@ -66,7 +67,7 @@ public class FileService {
     }
 
     /**
-     * Listing files from the choosen directory.
+     * Listing files from the chosen directory.
      *
      * @return List of files in that directory.
      */
@@ -74,5 +75,27 @@ public class FileService {
         final var fileList = currentDirectory.listFiles();
 
         return fileList;
+    }
+
+    public File createFile(String file) throws IOException {
+        File file1= new File(currentDirectory+"/"+file);
+        file1.createNewFile();
+
+        return file1;
+    }
+
+    /**
+     * Gets the requested file.
+     *
+     * @param fileName The name of the file requested.
+     * @return The file.
+     */
+    public File getFile(String fileName) {
+        for(final var file: listFiles()) {
+            if(file.getName().equalsIgnoreCase(fileName)) {
+                return file;
+            }
+        }
+        return null;
     }
 }

@@ -4,6 +4,9 @@ import Server.ClientHandler;
 import Server.FileService;
 
 import java.io.File;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import Server.CommandProcessor;
 
 /**
@@ -14,22 +17,26 @@ public class Server {
         try {
             ServerSocket serverSocket = new ServerSocket(9806);
 
-            while(true) {
-                Socket clientSocket = serverSocket.accept(); // Waiting for a client.
-                ClientThread clientThread = new ClientThread(clientSocket);
+            // Managing client session through Executor Service.
+            ExecutorService es = Executors.newFixedThreadPool(2);
 
-                clientThread.start();
+            while (true) {
+                Socket clientSocket = serverSocket.accept();
+
+                ClientSession clientSession = new ClientSession(clientSocket);
+                es.execute(clientSession);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        }
+        catch (Exception e) {
+                e.printStackTrace();
         }
     }
 
     // Managing multiple clients.
-    public static class ClientThread extends Thread {
+    public static class ClientSession implements Runnable {
         private final Socket clientSocket;
 
-        public ClientThread(final Socket clientSocket) {
+        public ClientSession(final Socket clientSocket) {
             this.clientSocket = clientSocket;
         }
 
@@ -49,7 +56,7 @@ public class Server {
                 while ((command = clientHandler.readCommand()) != null) {
                     commandProcessor.processCommand(command);
 
-                    if(command.equalsIgnoreCase("exit")) {
+                    if(command.equalsIgnoreCase(Protocol.EXIT.name())) {
                         clientSocket.close();
                         break;
                     }

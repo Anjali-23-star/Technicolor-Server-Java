@@ -1,9 +1,6 @@
 package Server;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.Socket;
 
 /**
@@ -13,6 +10,7 @@ public class ClientHandler {
     private Socket clientSocket;
     private BufferedReader inputReader;
     private OutputStream outputWriter;
+    private InputStream inputStream;
     private String readLine;
 
     public ClientHandler(final Socket clientSocket) throws Exception {
@@ -23,13 +21,15 @@ public class ClientHandler {
 
         // writing to socket.
         this.outputWriter = clientSocket.getOutputStream();
+
+        this.inputStream = clientSocket.getInputStream();
     }
 
     public BufferedReader getInputReader() {
         return inputReader;
     }
 
-    public OutputStream getOutputWriter() {
+    public OutputStream getOutputStream() {
         return outputWriter;
     }
 
@@ -44,4 +44,6 @@ public class ClientHandler {
     public void sendEND() throws IOException {
         outputWriter.write("END\n".getBytes());
     }
+
+    public InputStream getInputStream() { return inputStream;}
 }
