@@ -6,6 +6,7 @@ public class CommandProcessor {
 
     private final FileService fileService;
     private final ClientHandler clientHandler;
+    private String userName;
 
     public CommandProcessor(final FileService fileService, final ClientHandler clientHandler) {
         this.fileService = fileService;
@@ -27,39 +28,41 @@ public class CommandProcessor {
 
     // Handles CD command.
     private void handleCD(final String secondArg, final int tokens) throws IOException {
+        System.out.println("["+ userName+"] CURRENT DIRECTORY");
         if(tokens == 2) {
             boolean fileExists = fileService.changeDirectory(secondArg);
             if(fileExists) {
-                clientHandler.sendMessage("Changed directory");
-                clientHandler.sendEND();
+                clientHandler.writeUTF("Changed directory");
+                clientHandler.writeEND();
             }
             else{
-                clientHandler.sendMessage("No such directory found.");
-                clientHandler.sendEND();
+                clientHandler.writeUTF("No such directory found.");
+                clientHandler.writeEND();
             }
         }
         else{
-            clientHandler.sendMessage("Please enter a valid directory.");
-            clientHandler.sendEND();
+            clientHandler.writeUTF("Please enter a valid directory.");
+            clientHandler.writeEND();
         }
     }
 
     // handle file download.
-    public void handleDownload(String secondCmd) throws IOException{
+    private void handleDownload(String secondCmd) throws IOException{
         String fileName = secondCmd;
 
+        System.out.println("["+ userName+"] DOWNLOADS :"+fileName);
         final var file = fileService.getFile(fileName);
 
         // If file is not found.
         if(file == null) {
-            clientHandler.sendMessage("Sorry, no file of this name is found.");
-            clientHandler.sendEND();
+            clientHandler.writeUTF("Sorry, no file of this name is found.");
+            clientHandler.writeEND();
         }
 
         else {
-            clientHandler.sendMessage("Download");
+            clientHandler.writeUTF("Download");
             long fileLength = file.length();
-            clientHandler.sendMessage(Long.toString(fileLength));
+            clientHandler.writeLong(fileLength);
 
             // Sending content of the file.
             byte[] buffer = new byte[4096];
@@ -74,35 +77,39 @@ public class CommandProcessor {
 
             fio.close();
 
-            clientHandler.sendMessage("Download successful.");
-            clientHandler.sendEND();
+            clientHandler.writeUTF("Download successful.");
+            clientHandler.writeEND();
         }
     }
 
     // Handles Exit command.
     private void handleExitCmd() throws IOException{
-        clientHandler.sendMessage("This is server, Signing off for now.");
-        clientHandler.sendEND();
+        System.out.println("["+ userName+"] EXITS");
+        clientHandler.writeUTF("This is server, Signing off for now.");
+        clientHandler.writeEND();
     }
 
     // Handles invalid command.
     private void handleInvalidCmd() throws IOException {
-        clientHandler.sendMessage("Please enter a valid command");
-        clientHandler.sendEND();
+        System.out.println("["+ userName+"] INVALID COMMAND.");
+        clientHandler.writeUTF("Please enter a valid command");
+        clientHandler.writeEND();
     }
 
     // Handles list command.
     private void handleListCmd() throws IOException {
+        System.out.println("["+ userName+"] LIST");
         // Send file names to the client.
         for (File file : fileService.listFiles()) {
             String fileName = file.getName();
-            clientHandler.sendMessage(fileName);
+            clientHandler.writeUTF(fileName);
         }
-        clientHandler.sendEND();
+        clientHandler.writeEND();
     }
 
     // Handles open command.
     private void handleOpenCmd(final String secondArg, final int tokens) throws IOException {
+        System.out.println("["+ userName+"] OPEN: "+secondArg);
         boolean fileNotFound = true;
 
         if (tokens == 2) {
@@ -117,41 +124,43 @@ public class CommandProcessor {
                         String file_content;
 
                         while ((file_content = file_buffer.readLine()) != null) {
-                            clientHandler.sendMessage(file_content);
+                            clientHandler.writeUTF(file_content);
                         }
                     }
-                    clientHandler.sendEND();
+                    clientHandler.writeEND();
                     break;
                 }
             }
             if (fileNotFound) {
-                clientHandler.sendMessage((secondArg + " file not found."));
-                clientHandler.sendEND();
+                clientHandler.writeUTF((secondArg + " file not found."));
+                clientHandler.writeEND();
             }
         } else {
-            clientHandler.sendMessage("Please enter a valid file name.");
-            clientHandler.sendEND();
+            clientHandler.writeUTF("Please enter a valid file name.");
+            clientHandler.writeEND();
         }
     }
 
     // Handles PWD command.
     private void handlePWDCmd() throws IOException {
-        clientHandler.sendMessage(fileService.getPWD());
-        clientHandler.sendEND();
+        System.out.println("["+ userName+"] PWD");
+        clientHandler.writeUTF(fileService.getPWD());
+        clientHandler.writeEND();
     }
 
-    public void handleUpload() throws  IOException {
+    private void handleUpload() throws  IOException {
         // Reading meta-data of the file.
-        String fileName = clientHandler.readCommand();
-        long fileLength = Long.parseLong(clientHandler.readCommand());
+        String fileName = clientHandler.readUTF();
+        System.out.println("["+ userName+"] UPLOAD: "+fileName);
+        long fileLength = clientHandler.getDataInputStream().readLong();
 
         handleFileContent(fileLength, fileName);
 
-        clientHandler.sendMessage("Upload successful.");
-        clientHandler.sendEND();
+        clientHandler.writeUTF("Upload successful.");
+        clientHandler.writeEND();
     }
 
-    public void handleFileContent(long fileLength, String fileName) throws IOException {
+    private void handleFileContent(long fileLength, String fileName) throws IOException {
         // Create a file.
         File uploadedFile = fileService.createFile(fileName);
 
@@ -168,6 +177,30 @@ public class CommandProcessor {
             remainingBytes-=read;
         }
         fio.close();
+    }
+
+    public void showAvailableCommands() throws IOException {
+            clientHandler.writeUTF("LIST");
+            clientHandler.writeUTF("OPEN <file name>");
+            clientHandler.writeUTF("cd <directory>");
+            clientHandler.writeUTF("PWD");
+            clientHandler.writeUTF("UPLOAD <file>");
+            clientHandler.writeUTF("DOWNLOAD <file>");
+            clientHandler.writeUTF("WHOAMI");
+            clientHandler.writeUTF("EXIT");
+            clientHandler.writeEND();
+    }
+
+    // Sets current user.
+    public void setCurrentUser(String userName) {
+        this.userName=userName;
+   }
+
+   // Gets current user.
+    public void showCurrentUser() throws IOException {
+        System.out.println("["+ userName+"] LOGGED IN USER");
+        clientHandler.writeUTF("You are logged-in as: "+ userName);
+        clientHandler.writeEND();
     }
 
     // Handles command.
@@ -190,6 +223,12 @@ public class CommandProcessor {
                 break;
             case "DOWNLOAD":
                 handleDownload(secondArg);
+                break;
+            case "WHOAMI":
+                showCurrentUser();
+                break;
+            case "HELP":
+                showAvailableCommands();
                 break;
             case "EXIT":
                 handleExitCmd();

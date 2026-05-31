@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import Server.CommandProcessor;
+import Server.PersistentUsers;
 
 /**
  * A Server.
@@ -35,6 +36,9 @@ public class Server {
     // Managing multiple clients.
     public static class ClientSession implements Runnable {
         private final Socket clientSocket;
+        private boolean authenticated=false;
+        private String loggedInUser;
+        private final PersistentUsers users=new PersistentUsers();
 
         public ClientSession(final Socket clientSocket) {
             this.clientSocket = clientSocket;
@@ -53,8 +57,47 @@ public class Server {
                 /**
                  * Executing command.
                  */
-                while ((command = clientHandler.readCommand()) != null) {
-                    commandProcessor.processCommand(command);
+                while ((command = clientHandler.readUTF()) != null) {
+                    String cmd[] = command.split("\\s+");
+                    if(cmd[0].equalsIgnoreCase("LOGIN")) {
+                        String clientName = null;
+
+                        // check if client entered the user name.
+                        if(cmd.length>1) {
+                            clientName = cmd[1].toUpperCase();
+                        }
+
+                        clientHandler.writeUTF("Please enter password");
+                        clientHandler.writeEND();
+
+                        String password = clientHandler.readUTF().toUpperCase();
+
+                        // Checking if user exists.
+                        if(clientName!=null && users.isUserExists(clientName, password)) {
+                            clientHandler.writeUTF("User Authenticated.");
+                            authenticated=true;
+                            loggedInUser=clientName;
+                            clientHandler.writeEND();
+                        }
+                        else {
+                            clientHandler.writeUTF("Authentication failed.");
+                            clientHandler.writeUTF("Invalid User name or password.");
+                            clientHandler.writeUTF("Please try again.");
+                            clientHandler.writeEND();
+                        }
+
+                        continue;
+                    }
+
+                    if(!authenticated && !command.toUpperCase().startsWith("LOGIN")) {
+                        clientHandler.writeUTF("Please login first.");
+                        clientHandler.writeEND();
+                    }
+                    // Only authenticated user have access to command.
+                    else {
+                       commandProcessor.setCurrentUser(loggedInUser);
+                       commandProcessor.processCommand(command);
+                    }
 
                     if(command.equalsIgnoreCase(Protocol.EXIT.name())) {
                         clientSocket.close();

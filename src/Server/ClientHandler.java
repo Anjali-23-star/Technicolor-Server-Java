@@ -8,41 +8,48 @@ import java.net.Socket;
  */
 public class ClientHandler {
     private Socket clientSocket;
-    private BufferedReader inputReader;
     private OutputStream outputWriter;
     private InputStream inputStream;
-    private String readLine;
+    private DataOutputStream dataOutputStream;
+    private DataInputStream dataInputStream;
+
 
     public ClientHandler(final Socket clientSocket) throws Exception {
         this.clientSocket = clientSocket;
-
-        // reading from socket.
-        this.inputReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
         // writing to socket.
         this.outputWriter = clientSocket.getOutputStream();
 
         this.inputStream = clientSocket.getInputStream();
-    }
 
-    public BufferedReader getInputReader() {
-        return inputReader;
+        this.dataInputStream = new DataInputStream(clientSocket.getInputStream());
+
+        this.dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
+
     }
 
     public OutputStream getOutputStream() {
         return outputWriter;
     }
 
-    public String readCommand() throws IOException {
-        return getInputReader().readLine().trim();
+    public String readUTF() throws IOException {
+        return dataInputStream.readUTF();
     }
 
-    public void sendMessage(final String message) throws IOException {
-        outputWriter.write((message+"\n").getBytes());
+    public void writeUTF(String message) throws IOException {
+        dataOutputStream.writeUTF(message);
     }
 
-    public void sendEND() throws IOException {
-        outputWriter.write("END\n".getBytes());
+    public void writeEND() throws IOException {
+        dataOutputStream.writeUTF("END");
+    }
+
+    public void writeLong(long num) throws IOException {
+        dataOutputStream.writeLong(num);
+    }
+
+    public DataInputStream getDataInputStream() {
+        return dataInputStream;
     }
 
     public InputStream getInputStream() { return inputStream;}
