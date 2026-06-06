@@ -28,7 +28,7 @@ public class CommandProcessor {
 
     // Handles CD command.
     private void handleCD(final String secondArg, final int tokens) throws IOException {
-        System.out.println("["+ userName+"] CURRENT DIRECTORY");
+        System.out.println("["+ userName+"] CD");
         if(tokens == 2) {
             boolean fileExists = fileService.changeDirectory(secondArg);
             if(fileExists) {
@@ -50,7 +50,7 @@ public class CommandProcessor {
     private void handleDownload(String secondCmd) throws IOException{
         String fileName = secondCmd;
 
-        System.out.println("["+ userName+"] DOWNLOADS :"+fileName);
+        System.out.println("["+ userName+"] DOWNLOAD :"+fileName);
         final var file = fileService.getFile(fileName);
 
         // If file is not found.
@@ -84,7 +84,7 @@ public class CommandProcessor {
 
     // Handles Exit command.
     private void handleExitCmd() throws IOException{
-        System.out.println("["+ userName+"] EXITS");
+        System.out.println("["+ userName+"] EXIT");
         clientHandler.writeUTF("This is server, Signing off for now.");
         clientHandler.writeEND();
     }

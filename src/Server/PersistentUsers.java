@@ -1,24 +1,34 @@
 package Server;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 // Mimicking database.
-public class PersistentUsers {
+public class PersistentUsers{
     Map<String, String> users = new HashMap<String, String>();
 
-    // Adding users.
-    private void addUsers() {
-        users.put("ANIKA", "SCOOBYDOO");
-        users.put("KANISHKA", "LEMONDEW");
-        users.put("GERALD", "MOONBEAM");
-        users.put("KARAN", "KAMIKAZE");
-        users.put("SWATI", "HAGIMARU");
+    public PersistentUsers() throws Exception {
+        loadUsers();
     }
 
-    public PersistentUsers() {
-        addUsers();
-    }
+       public void loadUsers() throws Exception {
+           BufferedReader br = new BufferedReader(new FileReader("./src/Server_Files/ClientAuthDetails.txt"));
+           String line;
+
+           while((line=br.readLine())!=null) {
+               String[] creds = line.split(":");
+
+               String userName = creds[0];
+               String password = creds[1];
+
+               // Populate the map.
+               users.put(userName, password);
+           }
+       }
 
     // Checks if the logged-in user is an existing user.
     public boolean isUserExists(String name, String password) {
