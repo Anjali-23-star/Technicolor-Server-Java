@@ -1,11 +1,12 @@
+package Main;
+
 import java.io.*;
 import java.net.Socket;
-import java.util.Arrays;
 
 public class Client {
     public static void main(String[] args) {
         try {
-            System.out.println("Client started.");
+            System.out.println("Main.Client started.");
 
             Socket clientSocket = new Socket("localhost", 9806);
 
@@ -45,7 +46,7 @@ public class Client {
                     }
                 }
 
-                // Client exits.
+                // Main.Client exits.
                 if(userCommand.equalsIgnoreCase(Protocol.EXIT.name())) {
                     clientSocket.close();
                     break;

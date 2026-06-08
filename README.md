@@ -1,4 +1,4 @@
-# Technicolor Server 
+# Technicolor Main.Server 
 
 I built this project to understand how client-server communication actually works using sockets.
 
@@ -39,13 +39,13 @@ This project started as something “simple”, but turned out to be a great lea
 1. Open terminal in project folder.
 2. Run server
 
-javac Server.java
-java Server
+javac Main.Server.java
+java Main.Server
 
 3. Open another terminal and run client:
 
-javac Client.java
-java Client
+javac Main.Client.java
+java Main.Client
 
 4. Type commands like:
    LIST

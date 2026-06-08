@@ -1,3 +1,5 @@
+package Main;
+
 /**
  * Protocols for communication between client and server.
  */

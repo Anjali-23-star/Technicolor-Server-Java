@@ -1,19 +1,24 @@
 package Server;
 
+import Main.GeminiService;
+
 import java.io.*;
+import java.nio.file.Files;
+
 
 public class CommandProcessor {
 
     private final FileService fileService;
     private final ClientHandler clientHandler;
     private String userName;
+    private GeminiService geminiService;
 
     public CommandProcessor(final FileService fileService, final ClientHandler clientHandler) {
         this.fileService = fileService;
         this.clientHandler = clientHandler;
     }
 
-    public void processCommand(final String command) throws IOException {
+    public void processCommand(final String command) throws IOException, InterruptedException {
         String[] cmd = command.split("\\s+");
         String firstArg = cmd[0].toUpperCase();
         String secondArg = null;
@@ -203,8 +208,23 @@ public class CommandProcessor {
         clientHandler.writeEND();
     }
 
+    // Summarize file using AI.
+    public void summarizeFile(String fileName) throws IOException, InterruptedException {
+        geminiService = new GeminiService();
+
+        final var file = fileService.getFile(fileName);
+
+        String content = Files.readString(file.toPath());
+
+        geminiService.generateRequest(content);
+
+        clientHandler.writeUTF(geminiService.sendResponse());
+        clientHandler.writeEND();
+
+    }
+
     // Handles command.
-    private void handleCommand(final String command, final String secondArg, final int tokens) throws IOException {
+    private void handleCommand(final String command, final String secondArg, final int tokens) throws IOException, InterruptedException {
         switch(command) {
             case "LIST":
                 handleListCmd();
@@ -229,6 +249,9 @@ public class CommandProcessor {
                 break;
             case "HELP":
                 showAvailableCommands();
+                break;
+            case "SUMMARIZE":
+                summarizeFile(secondArg);
                 break;
             case "EXIT":
                 handleExitCmd();

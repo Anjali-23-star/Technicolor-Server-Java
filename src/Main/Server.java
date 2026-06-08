@@ -1,10 +1,12 @@
+package Main;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+
 import Server.ClientHandler;
 import Server.FileService;
 
-import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -12,7 +14,7 @@ import Server.CommandProcessor;
 import Server.PersistentUsers;
 
 /**
- * A Server.
+ * A Main.Server.
  */
 public class Server {
     public static void main(String[] args) {
