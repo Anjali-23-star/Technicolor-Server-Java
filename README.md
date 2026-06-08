@@ -1,52 +1,104 @@
-# Technicolor Main.Server 
 
-I built this project to understand how client-server communication actually works using sockets.
+# Technicolor Server
 
-At a high level, the server holds a few files, and the client can:
-- list all available files
-- open and read any one of them
-- navigate to directories
+A multi-client file server built in Java to understand networking, sockets, protocols, file transfer, and server-side system design from first principles.
 
----
+The project started as a learning exercise inspired by a discussion on building projects that improve understanding of how computers communicate. Over time, it evolved into a complete client-server application supporting authentication, file operations, session management, and AI-powered file summarization.
 
-## How it works
+## Features
 
-I designed a very simple protocol:
+* Multi-client server architecture
+* User registration
+* User authentication and session management
+* File upload
+* File download
+* Directory navigation
+* Command-based protocol design
+* Persistent user credentials
+* Server-side logging
+* AI-powered file summarization using Gemini API
 
-- `LIST` → server sends back all file names  
-- `OPEN <filename>` → server sends the content of that file
-- `PWD` -> server return the present working directory.
-- `CD` -> navigate across directories.
+## Tech Stack
 
-Each response ends with `END` so the client knows when to stop reading.
+* Java
+* Java Sockets
+* File I/O
+* Java HttpClient
+* Gemini API
 
----
+## Commands
 
-## What I learned
+### Authentication
 
-This project started as something “simple”, but turned out to be a great learning experience.
+```text
+REGISTER <username>
+LOGIN <username>
+```
 
-- Data is sent as bytes, not neat “messages”
-- Even something like `\n` matters a lot when reading data
-- If you don’t define boundaries properly, the program just hangs
-- Handling edge cases (extra spaces, wrong input, missing files) is not optional
-- Writing your own protocol makes you appreciate why they exist in the first place
+### File Operations
 
----
+```text
+LIST
+OPEN <file>
+UPLOAD <file>
+DOWNLOAD <file>
+CD <directory>
+PWD
+WHOAMI
+HELP
+```
 
-## How to run
+### AI Features
 
-1. Open terminal in project folder.
-2. Run server
+```text
+SUMMARIZE <file>
+```
 
-javac Main.Server.java
-java Main.Server
+Reads a text file and generates a concise summary using Gemini.
 
-3. Open another terminal and run client:
+## Example Session
 
-javac Main.Client.java
-java Main.Client
+```text
+LOGIN ANIKA
+Please enter password.
+scoobydoo
 
-4. Type commands like:
-   LIST
-   OPEN orange.txt
+User Authenticated.
+
+LIST
+
+orange.txt
+pink.txt
+
+SUMMARIZE pink.txt
+
+The text encourages readers to expand their perspective and look beyond immediate limitations.
+```
+
+## What I Learned
+
+Building Technicolor Server provided hands-on experience with:
+
+* Network programming using sockets
+* Protocol design and communication boundaries
+* Streams and file transfer
+* Authentication and session management
+* Debugging distributed interactions
+* Refactoring and clean code practices
+* Single Responsibility Principle (SRP)
+* Logging and observability
+* Integrating external AI services through APIs
+
+## Future Improvements
+
+* Database-backed user management
+* Spring Boot migration
+* Improved JSON parsing for AI responses
+* Role-based authorization
+* Web or mobile client interface
+
+## Project Status
+
+Technicolor Server V1 is complete.
+
+What began as curiosity became a practical exploration of networking, system design, and backend development.
